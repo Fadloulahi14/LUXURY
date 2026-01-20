@@ -1,0 +1,171 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* MG LUXURY Color Palette */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 23%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 23%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 23%;
+
+    /* Gold Primary */
+    --primary: 43 58% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Beige Secondary */
+    --secondary: 28 32% 63%;
+    --secondary-foreground: 0 0% 23%;
+
+    --muted: 30 20% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    /* Gold Accent */
+    --accent: 43 58% 52%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 20% 90%;
+    --input: 30 20% 90%;
+    --ring: 43 58% 52%;
+
+    --radius: 0.5rem;
+
+    /* Custom Luxury Variables */
+    --gold: 43 58% 52%;
+    --gold-light: 43 58% 65%;
+    --gold-dark: 43 58% 40%;
+    --noir: 0 0% 23%;
+    --beige: 28 32% 63%;
+    --beige-light: 30 30% 95%;
+    --cream: 40 40% 97%;
+
+    /* Gradients */
+    --gradient-gold: linear-gradient(135deg, hsl(43 58% 52%), hsl(43 58% 65%));
+    --gradient-luxury: linear-gradient(180deg, hsl(0 0% 23%) 0%, hsl(0 0% 15%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 10%) 0%, hsl(0 0% 20%) 50%, hsl(43 58% 30% / 0.3) 100%);
+
+    /* Shadows */
+    --shadow-gold: 0 4px 20px -5px hsl(43 58% 52% / 0.4);
+    --shadow-luxury: 0 10px 40px -10px hsl(0 0% 0% / 0.2);
+    --shadow-card: 0 4px 20px -5px hsl(0 0% 0% / 0.1);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 0 0% 10%;
+    --foreground: 40 40% 97%;
+
+    --card: 0 0% 13%;
+    --card-foreground: 40 40% 97%;
+
+    --popover: 0 0% 13%;
+    --popover-foreground: 40 40% 97%;
+
+    --primary: 43 58% 52%;
+    --primary-foreground: 0 0% 10%;
+
+    --secondary: 28 32% 25%;
+    --secondary-foreground: 40 40% 97%;
+
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 43 58% 52%;
+    --accent-foreground: 0 0% 10%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 43 58% 52%;
+
+    --sidebar-background: 0 0% 10%;
+    --sidebar-foreground: 40 40% 97%;
+    --sidebar-primary: 43 58% 52%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 40 40% 97%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 43 58% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Playfair Display', serif;
+  }
+
+  .font-sans {
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, hsl(43 58% 52%), hsl(43 58% 70%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-gradient-gold {
+    background: linear-gradient(135deg, hsl(43 58% 52%), hsl(43 58% 65%));
+  }
+
+  .bg-gradient-luxury {
+    background: linear-gradient(180deg, hsl(0 0% 15%) 0%, hsl(0 0% 10%) 100%);
+  }
+
+  .bg-gradient-hero {
+    background: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(0 0% 18%) 50%, hsl(43 20% 20%) 100%);
+  }
+
+  .shadow-gold {
+    box-shadow: 0 4px 20px -5px hsl(43 58% 52% / 0.4);
+  }
+
+  .shadow-luxury {
+    box-shadow: 0 10px 40px -10px hsl(0 0% 0% / 0.25);
+  }
+
+  .border-gold {
+    border-color: hsl(43 58% 52%);
+  }
+
+  .hover-lift {
+    @apply transition-transform duration-300 ease-out;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+  }
+}
