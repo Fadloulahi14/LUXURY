@@ -273,8 +273,7 @@ const DashboardAdmin = () => {
 
   const getStatusBadge = (status: string) => {
     const statusColors: Record<string, string> = {
-      'en attente': 'bg-orange-100 text-orange-800',
-      'en cours': 'bg-yellow-100 text-yellow-800',
+      'en cours': 'bg-orange-100 text-orange-800',
       'confirmée': 'bg-blue-100 text-blue-800',
       'expédiée': 'bg-purple-100 text-purple-800',
       'livrée': 'bg-green-100 text-green-800',
@@ -550,13 +549,13 @@ const DashboardAdmin = () => {
                         <span className="font-display font-semibold">Commande #{order.id}</span>
                         <Badge className={getStatusBadge(order.status)}>
                           {order.status}
-                          {order.status === 'en attente' && (
+                          {order.status === 'en cours' && (
                             <span className="ml-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
                           )}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">{order.date}</p>
-                      {order.status === 'en attente' && (
+                      {order.status === 'en cours' && (
                         <p className="text-xs text-orange-600 font-medium">⚠️ Action requise</p>
                       )}
                     </div>
@@ -592,7 +591,7 @@ const DashboardAdmin = () => {
                     </div>
 
                     {/* Action buttons for pending orders */}
-                    {order.status === 'en attente' && (
+                    {order.status === 'en cours' && (
                       <div className="flex gap-2 mt-4 pt-4 border-t border-border">
                         <Button
                           size="sm"

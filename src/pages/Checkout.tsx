@@ -64,7 +64,7 @@ Merci de confirmer ma commande ! 🙏
         customer_phone: formData.phone,
         address: formData.address,
         total_price: totalPrice,
-        status: 'en attente' as const,
+        status: 'en cours' as const,
         date: new Date().toISOString(),
         user_id: null
       };
@@ -74,6 +74,8 @@ Merci de confirmer ma commande ! 🙏
         quantity: item.quantity,
         price: item.product.price
       }));
+
+      console.log('Données de commande:', { orderData, orderItems });
 
       await api.createOrderWithItems(orderData, orderItems);
       toast.success('Commande enregistrée avec succès !');
@@ -88,8 +90,15 @@ Merci de confirmer ma commande ! 🙏
       clearCart();
 
     } catch (error) {
-      console.error('Erreur lors de la création de la commande:', error);
-      toast.error('Erreur lors de l\'envoi de la commande. Veuillez réessayer.');
+      console.error('Erreur détaillée lors de la création de la commande:', error);
+
+      // Afficher plus de détails sur l'erreur
+      if (error instanceof Error) {
+        console.error('Message d\'erreur:', error.message);
+        toast.error(`Erreur: ${error.message}`);
+      } else {
+        toast.error('Erreur lors de l\'envoi de la commande. Veuillez réessayer.');
+      }
 
       // Ouvrir quand même WhatsApp en cas d'erreur de sauvegarde
       const phoneNumber = '221778012731';
