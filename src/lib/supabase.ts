@@ -58,7 +58,7 @@ export interface Order {
   created_at: string
   updated_at: string
   user_id: number | null
-  items: OrderItem[]
+  items?: OrderItem[]
 }
 
 export interface User {
