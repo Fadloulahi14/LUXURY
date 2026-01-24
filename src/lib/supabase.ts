@@ -53,7 +53,7 @@ export interface Order {
   customer_phone: string | null
   address: string
   total_price: number
-  status: 'en cours' | 'confirmée' | 'expédiée' | 'livrée' | 'annulée'
+  status: 'en attente' | 'en cours' | 'confirmée' | 'expédiée' | 'livrée' | 'annulée'
   date: string
   created_at: string
   updated_at: string

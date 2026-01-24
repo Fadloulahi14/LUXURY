@@ -224,6 +224,32 @@ const DashboardAdmin = () => {
     }
   };
 
+  const handleApproveOrder = async (orderId: number) => {
+    try {
+      await api.updateOrder(String(orderId), { status: 'confirmée' });
+      toast.success('Commande approuvée avec succès');
+      await refreshData();
+    } catch (error) {
+      console.error('Erreur lors de l\'approbation:', error);
+      toast.error('Erreur lors de l\'approbation de la commande');
+    }
+  };
+
+  const handleRejectOrder = async (orderId: number) => {
+    if (!confirm('Êtes-vous sûr de vouloir rejeter cette commande ?')) {
+      return;
+    }
+
+    try {
+      await api.updateOrder(String(orderId), { status: 'annulée' });
+      toast.success('Commande rejetée');
+      await refreshData();
+    } catch (error) {
+      console.error('Erreur lors du rejet:', error);
+      toast.error('Erreur lors du rejet de la commande');
+    }
+  };
+
   const stats = [
     {
       label: 'Produits',
@@ -247,6 +273,7 @@ const DashboardAdmin = () => {
 
   const getStatusBadge = (status: string) => {
     const statusColors: Record<string, string> = {
+      'en attente': 'bg-orange-100 text-orange-800',
       'en cours': 'bg-yellow-100 text-yellow-800',
       'confirmée': 'bg-blue-100 text-blue-800',
       'expédiée': 'bg-purple-100 text-purple-800',
@@ -521,9 +548,17 @@ const DashboardAdmin = () => {
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-display font-semibold">Commande #{order.id}</span>
-                        <Badge className={getStatusBadge(order.status)}>{order.status}</Badge>
+                        <Badge className={getStatusBadge(order.status)}>
+                          {order.status}
+                          {order.status === 'en attente' && (
+                            <span className="ml-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
+                          )}
+                        </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">{order.date}</p>
+                      {order.status === 'en attente' && (
+                        <p className="text-xs text-orange-600 font-medium">⚠️ Action requise</p>
+                      )}
                     </div>
                     <span className="font-display text-xl font-bold text-primary">
                       {formatPrice(order.total_price)}
@@ -555,6 +590,27 @@ const DashboardAdmin = () => {
                         );
                       })}
                     </div>
+
+                    {/* Action buttons for pending orders */}
+                    {order.status === 'en attente' && (
+                      <div className="flex gap-2 mt-4 pt-4 border-t border-border">
+                        <Button
+                          size="sm"
+                          onClick={() => handleApproveOrder(order.id)}
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          Approuver
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleRejectOrder(order.id)}
+                          className="flex-1"
+                        >
+                          Rejeter
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               ))}

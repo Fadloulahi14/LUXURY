@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { api } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 const Checkout = () => {
   const { items, totalPrice, clearCart } = useCart();
@@ -51,16 +53,50 @@ Merci de confirmer ma commande ! 🙏
     return message;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const phoneNumber = '221778012731'; // Replace with actual WhatsApp number
-    const message = generateWhatsAppMessage();
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
-    
-    window.open(whatsappUrl, '_blank');
-    setOrderSent(true);
-    clearCart();
+
+    try {
+      // Créer la commande en base de données avec le statut 'en attente'
+      const orderData = {
+        customer_name: formData.name,
+        customer_email: `${formData.name.toLowerCase().replace(/\s+/g, '.')}@whatsapp.local`, // Email temporaire pour WhatsApp
+        customer_phone: formData.phone,
+        address: formData.address,
+        total_price: totalPrice,
+        status: 'en attente' as const,
+        date: new Date().toISOString(),
+        user_id: null
+      };
+
+      const orderItems = items.map(item => ({
+        product_id: item.product.id,
+        quantity: item.quantity,
+        price: item.product.price
+      }));
+
+      await api.createOrderWithItems(orderData, orderItems);
+      toast.success('Commande enregistrée avec succès !');
+
+      // Ouvrir WhatsApp
+      const phoneNumber = '221778012731'; // Replace with actual WhatsApp number
+      const message = generateWhatsAppMessage();
+      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+
+      window.open(whatsappUrl, '_blank');
+      setOrderSent(true);
+      clearCart();
+
+    } catch (error) {
+      console.error('Erreur lors de la création de la commande:', error);
+      toast.error('Erreur lors de l\'envoi de la commande. Veuillez réessayer.');
+
+      // Ouvrir quand même WhatsApp en cas d'erreur de sauvegarde
+      const phoneNumber = '221778012731';
+      const message = generateWhatsAppMessage();
+      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+      window.open(whatsappUrl, '_blank');
+    }
   };
 
   if (items.length === 0 && !orderSent) {
