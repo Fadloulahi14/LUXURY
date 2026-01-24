@@ -21,7 +21,7 @@ const Contact = () => {
     {
       icon: Phone,
       title: 'Téléphone',
-      details: '+221 77 000 00 00',
+      details: '+221 77 801 27 31',
       description: 'Lundi au Samedi, 9h-18h'
     },
     {
@@ -163,7 +163,7 @@ const Contact = () => {
                     Pour une réponse immédiate, contactez-nous sur WhatsApp
                   </p>
                   <a
-                    href="https://wa.me/221770000000?text=Bonjour%20MG%20LUXURY,%20je%20souhaite%20en%20savoir%20plus%20sur%20vos%20produits."
+                    href="https://wa.me/221778012731?text=Bonjour%20MG%20LUXURY,%20je%20souhaite%20en%20savoir%20plus%20sur%20vos%20produits."
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-6 py-3 bg-noir text-cream rounded-full font-semibold hover:bg-noir/90 transition-colors"
