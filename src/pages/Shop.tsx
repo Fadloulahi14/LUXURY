@@ -5,10 +5,10 @@ import { Filter, X, SlidersHorizontal } from 'lucide-react';
 import Navbar from '@/components/Navbar/Navbar';
 import Footer from '@/components/Footer/Footer';
 import ProductCard from '@/components/ProductCard/ProductCard';
-import { products } from '@/api/products';
-import { categories } from '@/api/categories';
+import { useSupabase } from '@/context/SupabaseContext';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { Pagination } from '@/components/ui/pagination';
 import {
   Sheet,
   SheetContent,
@@ -19,14 +19,19 @@ import {
 } from '@/components/ui/sheet';
 
 const Shop = () => {
+  const { products, categories, loading, error } = useSupabase();
   const [searchParams, setSearchParams] = useSearchParams();
   const [priceRange, setPriceRange] = useState([0, 15000]);
   const [showNewOnly, setShowNewOnly] = useState(false);
   const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc' | 'name'>('default');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12; // Nombre de produits par page
 
   const selectedCategory = searchParams.get('category');
 
   const filteredProducts = useMemo(() => {
+    if (!products) return [];
+
     let result = [...products];
 
     // Category filter
@@ -39,7 +44,7 @@ const Shop = () => {
 
     // New only filter
     if (showNewOnly) {
-      result = result.filter(p => p.isNew);
+      result = result.filter(p => p.is_new);
     }
 
     // Sort
@@ -56,7 +61,54 @@ const Shop = () => {
     }
 
     return result;
-  }, [selectedCategory, priceRange, showNewOnly, sortBy]);
+  }, [products, selectedCategory, priceRange, showNewOnly, sortBy]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredProducts.slice(startIndex, endIndex);
+  }, [filteredProducts, currentPage, itemsPerPage]);
+
+  // Reset to page 1 when filters change
+  const handleFiltersChange = () => {
+    setCurrentPage(1);
+  };
+
+  // Gestion du chargement
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="pt-20 min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Chargement des produits...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Gestion des erreurs
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="pt-20 min-h-screen flex items-center justify-center">
+          <div className="text-center text-red-600">
+            <p>Erreur lors du chargement: {error}</p>
+            <Button onClick={() => window.location.reload()} className="mt-4">
+              Réessayer
+            </Button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   const handleCategoryChange = (category: string | null) => {
     if (category) {
@@ -64,6 +116,7 @@ const Shop = () => {
     } else {
       setSearchParams({});
     }
+    handleFiltersChange();
   };
 
   const clearFilters = () => {
@@ -71,6 +124,7 @@ const Shop = () => {
     setPriceRange([0, 15000]);
     setShowNewOnly(false);
     setSortBy('default');
+    handleFiltersChange();
   };
 
   const formatPrice = (price: number) => {
@@ -91,7 +145,7 @@ const Shop = () => {
           >
             Tous les produits
           </button>
-          {categories.map(cat => (
+          {categories?.map(cat => (
             <button
               key={cat.id}
               onClick={() => handleCategoryChange(cat.name)}
@@ -171,14 +225,14 @@ const Shop = () => {
               className="text-center"
             >
               <h1 className="font-display text-4xl md:text-5xl font-bold text-cream mb-4">
-                {selectedCategory 
-                  ? categories.find(c => c.name === selectedCategory)?.label || 'Boutique'
+                {selectedCategory
+                  ? categories?.find(c => c.name === selectedCategory)?.label || 'Boutique'
                   : 'Notre Boutique'
                 }
               </h1>
               <p className="text-cream/70 max-w-xl mx-auto">
                 {selectedCategory
-                  ? categories.find(c => c.name === selectedCategory)?.description
+                  ? categories?.find(c => c.name === selectedCategory)?.description
                   : 'Découvrez notre collection exclusive de produits naturels premium'
                 }
               </p>
@@ -233,9 +287,9 @@ const Shop = () => {
                   </p>
                 </div>
 
-                {filteredProducts.length > 0 ? (
+                {paginatedProducts.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {filteredProducts.map((product, index) => (
+                    {paginatedProducts.map((product, index) => (
                       <ProductCard key={product.id} product={product} index={index} />
                     ))}
                   </div>
@@ -246,6 +300,18 @@ const Shop = () => {
                     </p>
                     <Button onClick={clearFilters}>Voir tous les produits</Button>
                   </div>
+                )}
+
+                {/* Pagination */}
+                {filteredProducts.length > itemsPerPage && (
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                    showInfo={true}
+                    totalItems={filteredProducts.length}
+                    itemsPerPage={itemsPerPage}
+                  />
                 )}
               </div>
             </div>

@@ -1,9 +1,13 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { categories } from '@/api/categories';
+import { useSupabase } from '@/context/SupabaseContext';
 
 const CategoryMenu = () => {
+  const { categories } = useSupabase();
+
+  if (!categories) return null;
+
   return (
     <section className="py-20 bg-beige-light">
       <div className="container mx-auto px-4">

@@ -9,8 +9,8 @@ export interface User {
 export const users: User[] = [
   {
     id: 1,
-    name: "Admin MG",
-    email: "admin@mg.com",
+    name: "Admin MG Luxury",
+    email: "admin@mgluxury.com",
     password: "admin123",
     role: "admin"
   },
@@ -19,6 +19,13 @@ export const users: User[] = [
     name: "Client Test",
     email: "client@test.com",
     password: "client123",
+    role: "customer"
+  },
+  {
+    id: 3,
+    name: "Fatou Diallo",
+    email: "fatou@example.com",
+    password: "fatou123",
     role: "customer"
   }
 ];

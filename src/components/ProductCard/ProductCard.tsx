@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ShoppingBag, Eye } from 'lucide-react';
-import { Product } from '@/api/products';
+import { Product } from '@/lib/supabase';
+import { useSupabase } from '@/context/SupabaseContext';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +13,11 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
+  const { categories } = useSupabase();
   const { addToCart } = useCart();
+
+  // Trouver le libellé de la catégorie
+  const categoryLabel = categories?.find(cat => cat.name === product.category)?.label || product.category;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-SN', {
@@ -38,7 +43,7 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
         
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
-          {product.isNew && (
+          {product.is_new && (
             <Badge className="bg-primary text-primary-foreground">Nouveau</Badge>
           )}
           {product.stock < 5 && product.stock > 0 && (
@@ -68,7 +73,7 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
       {/* Content */}
       <div className="p-5">
         <span className="text-xs text-muted-foreground uppercase tracking-wider">
-          {product.category === 'thiouraye' ? 'Thiouraye' : 'Huile Naturelle'}
+          {categoryLabel}
         </span>
         <Link to={`/product/${product.id}`}>
           <h3 className="font-display text-lg font-semibold mt-1 text-foreground hover:text-primary transition-colors line-clamp-1">

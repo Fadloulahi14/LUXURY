@@ -1,18 +1,19 @@
 -- =========================================
--- MG LUXURY - SUPABASE DATABASE SCHEMA
+-- MG LUXURY - SCHEMA BASE DE DONNÉES SUPABASE
+-- Basé sur les interfaces API TypeScript
 -- =========================================
 
--- Enable Row Level Security
+-- Activer Row Level Security
 ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret';
 
 -- =========================================
--- 1. USERS TABLE
+-- 1. TABLE UTILISATEURS
 -- =========================================
 CREATE TABLE IF NOT EXISTS users (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
-  name VARCHAR(255) NOT NULL,
   role VARCHAR(50) DEFAULT 'customer' CHECK (role IN ('customer', 'admin')),
   phone VARCHAR(20),
   address TEXT,
@@ -21,7 +22,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- =========================================
--- 2. CATEGORIES TABLE
+-- 2. TABLE CATÉGORIES
 -- =========================================
 CREATE TABLE IF NOT EXISTS categories (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -34,7 +35,7 @@ CREATE TABLE IF NOT EXISTS categories (
 );
 
 -- =========================================
--- 3. PRODUCTS TABLE
+-- 3. TABLE PRODUITS
 -- =========================================
 CREATE TABLE IF NOT EXISTS products (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -50,12 +51,12 @@ CREATE TABLE IF NOT EXISTS products (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 
-  -- Foreign key to categories (optional, for future enhancement)
+  -- Clé étrangère vers categories (optionnel pour amélioration future)
   category_id UUID REFERENCES categories(id) ON DELETE SET NULL
 );
 
 -- =========================================
--- 4. ORDERS TABLE
+-- 4. TABLE COMMANDES
 -- =========================================
 CREATE TABLE IF NOT EXISTS orders (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -69,24 +70,24 @@ CREATE TABLE IF NOT EXISTS orders (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 
-  -- Foreign key to users (optional, for future enhancement)
+  -- Clé étrangère vers users (optionnel pour amélioration future)
   user_id UUID REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- =========================================
--- 5. ORDER ITEMS TABLE (for order details)
+-- 5. TABLE ARTICLES DE COMMANDE
 -- =========================================
 CREATE TABLE IF NOT EXISTS order_items (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
   product_id UUID NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
   quantity INTEGER NOT NULL CHECK (quantity > 0),
-  price DECIMAL(10,2) NOT NULL CHECK (price >= 0), -- Price at time of order
+  price DECIMAL(10,2) NOT NULL CHECK (price >= 0), -- Prix au moment de la commande
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- =========================================
--- INDEXES FOR PERFORMANCE
+-- INDEXES POUR LES PERFORMANCES
 -- =========================================
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
 CREATE INDEX IF NOT EXISTS idx_products_featured ON products(featured);
@@ -97,24 +98,24 @@ CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
 CREATE INDEX IF NOT EXISTS idx_order_items_product_id ON order_items(product_id);
 
 -- =========================================
--- ROW LEVEL SECURITY POLICIES
+-- POLITIQUES ROW LEVEL SECURITY (RLS)
 -- =========================================
 
--- Enable RLS on all tables
+-- Activer RLS sur toutes les tables
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 
--- Users policies
-CREATE POLICY "Users can view their own data" ON users
+-- Politiques utilisateurs
+CREATE POLICY "Les utilisateurs peuvent voir leurs propres données" ON users
   FOR SELECT USING (auth.uid() = id);
 
-CREATE POLICY "Users can update their own data" ON users
+CREATE POLICY "Les utilisateurs peuvent mettre à jour leurs propres données" ON users
   FOR UPDATE USING (auth.uid() = id);
 
-CREATE POLICY "Admins can view all users" ON users
+CREATE POLICY "Les admins peuvent voir tous les utilisateurs" ON users
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM users
@@ -122,11 +123,11 @@ CREATE POLICY "Admins can view all users" ON users
     )
   );
 
--- Categories policies (public read, admin write)
-CREATE POLICY "Anyone can view categories" ON categories
+-- Politiques catégories (lecture publique, écriture admin)
+CREATE POLICY "Tout le monde peut voir les catégories" ON categories
   FOR SELECT USING (true);
 
-CREATE POLICY "Only admins can modify categories" ON categories
+CREATE POLICY "Seuls les admins peuvent modifier les catégories" ON categories
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM users
@@ -134,11 +135,11 @@ CREATE POLICY "Only admins can modify categories" ON categories
     )
   );
 
--- Products policies (public read, admin write)
-CREATE POLICY "Anyone can view products" ON products
+-- Politiques produits (lecture publique, écriture admin)
+CREATE POLICY "Tout le monde peut voir les produits" ON products
   FOR SELECT USING (true);
 
-CREATE POLICY "Only admins can modify products" ON products
+CREATE POLICY "Seuls les admins peuvent modifier les produits" ON products
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM users
@@ -146,14 +147,14 @@ CREATE POLICY "Only admins can modify products" ON products
     )
   );
 
--- Orders policies
-CREATE POLICY "Users can view their own orders" ON orders
+-- Politiques commandes
+CREATE POLICY "Les utilisateurs peuvent voir leurs propres commandes" ON orders
   FOR SELECT USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can create their own orders" ON orders
+CREATE POLICY "Les utilisateurs peuvent créer leurs propres commandes" ON orders
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Admins can view all orders" ON orders
+CREATE POLICY "Les admins peuvent voir toutes les commandes" ON orders
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM users
@@ -161,7 +162,7 @@ CREATE POLICY "Admins can view all orders" ON orders
     )
   );
 
-CREATE POLICY "Admins can update orders" ON orders
+CREATE POLICY "Les admins peuvent mettre à jour les commandes" ON orders
   FOR UPDATE USING (
     EXISTS (
       SELECT 1 FROM users
@@ -169,8 +170,8 @@ CREATE POLICY "Admins can update orders" ON orders
     )
   );
 
--- Order items policies
-CREATE POLICY "Users can view their own order items" ON order_items
+-- Politiques articles de commande
+CREATE POLICY "Les utilisateurs peuvent voir leurs propres articles de commande" ON order_items
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM orders
@@ -179,7 +180,7 @@ CREATE POLICY "Users can view their own order items" ON order_items
     )
   );
 
-CREATE POLICY "Users can create order items for their orders" ON order_items
+CREATE POLICY "Les utilisateurs peuvent créer des articles pour leurs commandes" ON order_items
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM orders
@@ -188,7 +189,7 @@ CREATE POLICY "Users can create order items for their orders" ON order_items
     )
   );
 
-CREATE POLICY "Admins can view all order items" ON order_items
+CREATE POLICY "Les admins peuvent voir tous les articles de commande" ON order_items
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM users
@@ -197,10 +198,10 @@ CREATE POLICY "Admins can view all order items" ON order_items
   );
 
 -- =========================================
--- SAMPLE DATA INSERTION
+-- INSERTION DE DONNÉES D'EXEMPLE
 -- =========================================
 
--- Insert categories
+-- Insérer les catégories
 INSERT INTO categories (name, label, description, image) VALUES
 ('huile', 'Huiles Naturelles', 'Huiles pures et naturelles pour la beauté et le bien-être', '/image/huile1.jpeg'),
 ('parfum', 'Parfum', 'Parfums naturels et authentiques inspirés des traditions sénégalaises', '/image/thiouray11.jpeg'),
@@ -208,7 +209,7 @@ INSERT INTO categories (name, label, description, image) VALUES
 ('poudre-riz', 'Poudre de Riz', 'Poudres de riz naturelles pour le maquillage et les soins de la peau', '/image/thiouray13.jpeg')
 ON CONFLICT (name) DO NOTHING;
 
--- Insert sample products
+-- Insérer les produits d'exemple
 INSERT INTO products (name, price, category, description, composition, image, stock, featured, is_new) VALUES
 -- Huiles Naturelles
 ('Huile de Coco Vierge', 3000, 'huile', 'Huile 100% naturelle, extraite à froid, hydratante pour peau et cheveux. Nourrit en profondeur et apporte brillance et douceur.', '100% huile de coco vierge pure, extraite à froid sans additifs ni conservateurs.', '/image/huile1.jpeg', 20, true, true),
@@ -216,16 +217,16 @@ INSERT INTO products (name, price, category, description, composition, image, st
 ('Huile de Baobab', 6000, 'huile', 'Trésor africain aux propriétés exceptionnelles. Hydrate, apaise et protège les peaux les plus sensibles.', 'Huile de baobab pure, riche en vitamines A, D, E et F. Pressée à froid.', '/image/huile3.jpeg', 10, true, false),
 ('Huile de Nigelle', 5500, 'huile', 'L''huile aux mille vertus. Renforce le système immunitaire et sublime votre beauté naturelle.', 'Huile de nigelle (cumin noir) 100% pure, pressée à froid, sans additifs.', '/image/huile1.jpeg', 18, false, true),
 
--- Parfums
-('Parfum Traditionnel Sénégalais', 12000, 'parfum', 'Un parfum authentique qui capture l''essence des traditions sénégalaises. Notes boisées et florales.', 'Huiles essentielles naturelles, extraits de fleurs locales.', '/image/thiouray11.jpeg', 8, true, true),
-('Parfum aux Notes Florales', 9500, 'parfum', 'Un bouquet floral délicat inspiré des jardins tropicaux. Parfum frais et léger.', 'Essences florales pures, huiles végétales.', '/image/thiouray11.jpeg', 12, false, false),
-('Parfum Oriental', 15000, 'parfum', 'Notes orientales mystérieuses et envoûtantes. Un parfum sophistiqué pour les occasions spéciales.', 'Résines précieuses, épices orientales, huiles essentielles.', '/image/thiouray11.jpeg', 6, true, false),
-
 -- Thiourayes
 ('Thiouraye Royal', 5000, 'thiouraye', 'Thiouraye artisanal aux senteurs nobles et profondes. Un encens traditionnel sénégalais qui parfume votre intérieur d''une fragrance envoûtante et raffinée.', NULL, '/image/thiouray11.jpeg', 12, true, false),
 ('Thiouraye Nuit d''Orient', 7500, 'thiouraye', 'Un mélange exclusif aux notes orientales mystérieuses. Parfait pour créer une ambiance chaleureuse et luxueuse.', NULL, '/image/thiouray12.jpeg', 8, true, true),
 ('Thiouraye Tradition', 3500, 'thiouraye', 'La recette ancestrale transmise de génération en génération. Un classique intemporel.', NULL, '/image/thiouray13.jpeg', 25, false, false),
 ('Thiouraye Prestige Collection', 12000, 'thiouraye', 'Notre création la plus exclusive. Un assemblage rare de résines précieuses pour les connaisseurs.', NULL, '/image/thiouray14.jpeg', 5, true, true),
+
+-- Parfums
+('Parfum Traditionnel Sénégalais', 12000, 'parfum', 'Un parfum authentique qui capture l''essence des traditions sénégalaises. Notes boisées et florales.', 'Huiles essentielles naturelles, extraits de fleurs locales.', '/image/thiouray11.jpeg', 8, true, true),
+('Parfum aux Notes Florales', 9500, 'parfum', 'Un bouquet floral délicat inspiré des jardins tropicaux. Parfum frais et léger.', 'Essences florales pures, huiles végétales.', '/image/thiouray11.jpeg', 12, false, false),
+('Parfum Oriental', 15000, 'parfum', 'Notes orientales mystérieuses et envoûtantes. Un parfum sophistiqué pour les occasions spéciales.', 'Résines précieuses, épices orientales, huiles essentielles.', '/image/thiouray11.jpeg', 6, true, false),
 
 -- Poudre de Riz
 ('Poudre de Riz Naturelle', 4500, 'poudre-riz', 'Poudre de riz 100% naturelle pour un maquillage léger et naturel. Convient à tous les types de peau.', 'Poudre de riz micronisée, sans additifs.', '/image/thiouray11.jpeg', 15, false, true),
@@ -234,10 +235,10 @@ INSERT INTO products (name, price, category, description, composition, image, st
 ON CONFLICT DO NOTHING;
 
 -- =========================================
--- FUNCTIONS AND TRIGGERS
+-- FONCTIONS ET DÉCLENCHEURS
 -- =========================================
 
--- Function to update updated_at timestamp
+-- Fonction pour mettre à jour le timestamp updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -246,7 +247,7 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Triggers for updated_at
+-- Déclencheurs pour updated_at
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -260,10 +261,10 @@ CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON orders
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- =========================================
--- VIEWS FOR COMMON QUERIES
+-- VUES POUR LES REQUÊTES COURANTES
 -- =========================================
 
--- View for complete order details
+-- Vue pour les détails complets de commande
 CREATE OR REPLACE VIEW order_details AS
 SELECT
     o.id as order_id,
@@ -283,7 +284,7 @@ FROM orders o
 JOIN order_items oi ON o.id = oi.order_id
 JOIN products p ON oi.product_id = p.id;
 
--- View for product statistics
+-- Vue pour les statistiques de produits
 CREATE OR REPLACE VIEW product_stats AS
 SELECT
     p.id,
@@ -301,16 +302,16 @@ LEFT JOIN order_items oi ON p.id = oi.product_id
 GROUP BY p.id, p.name, p.category, p.price, p.stock, p.featured, p.is_new;
 
 -- =========================================
--- STORAGE BUCKET FOR IMAGES (if using Supabase Storage)
+-- BUCKET DE STOCKAGE POUR LES IMAGES (si utilisation de Supabase Storage)
 -- =========================================
 
--- Note: Create a storage bucket called 'images' in Supabase Dashboard
--- and configure the following policies:
+-- Note: Créer un bucket de stockage appelé 'images' dans le Dashboard Supabase
+-- et configurer les politiques suivantes:
 
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('images', 'images', true);
 
--- Storage policies for images bucket
--- CREATE POLICY "Anyone can view images" ON storage.objects FOR SELECT USING (bucket_id = 'images');
--- CREATE POLICY "Only admins can upload images" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'images' AND EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'));
--- CREATE POLICY "Only admins can update images" ON storage.objects FOR UPDATE USING (bucket_id = 'images' AND EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'));
--- CREATE POLICY "Only admins can delete images" ON storage.objects FOR DELETE USING (bucket_id = 'images' AND EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'));
+-- Politiques de stockage pour le bucket images
+-- CREATE POLICY "Tout le monde peut voir les images" ON storage.objects FOR SELECT USING (bucket_id = 'images');
+-- CREATE POLICY "Seuls les admins peuvent télécharger des images" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'images' AND EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'));
+-- CREATE POLICY "Seuls les admins peuvent mettre à jour les images" ON storage.objects FOR UPDATE USING (bucket_id = 'images' AND EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'));
+-- CREATE POLICY "Seuls les admins peuvent supprimer des images" ON storage.objects FOR DELETE USING (bucket_id = 'images' AND EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin'));

@@ -1,8 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, users } from '@/api/users';
+import { users } from '@/api/users'; // Temporaire pour le développement
+
+interface AppUser {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+  role: 'admin' | 'customer';
+}
 
 interface UserContextType {
-  user: User | null;
+  user: AppUser | null;
   login: (email: string, password: string) => { success: boolean; message: string };
   logout: () => void;
   isAdmin: boolean;
@@ -11,7 +19,7 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(() => {
+  const [user, setUser] = useState<AppUser | null>(() => {
     const saved = localStorage.getItem('mg-user');
     return saved ? JSON.parse(saved) : null;
   });

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { products } from '@/api/products';
+import { useSupabase } from '@/context/SupabaseContext';
 import ProductCard from '@/components/ProductCard/ProductCard';
 
 interface ProductSliderProps {
@@ -10,7 +10,11 @@ interface ProductSliderProps {
 }
 
 const ProductSlider = ({ title, subtitle, filter = 'all', category }: ProductSliderProps) => {
-  let filteredProducts = products;
+  const { products } = useSupabase();
+
+  if (!products) return null;
+
+  let filteredProducts = [...products];
 
   if (category) {
     filteredProducts = filteredProducts.filter(p => p.category === category);
@@ -19,7 +23,7 @@ const ProductSlider = ({ title, subtitle, filter = 'all', category }: ProductSli
   if (filter === 'featured') {
     filteredProducts = filteredProducts.filter(p => p.featured);
   } else if (filter === 'new') {
-    filteredProducts = filteredProducts.filter(p => p.isNew);
+    filteredProducts = filteredProducts.filter(p => p.is_new);
   }
 
   return (

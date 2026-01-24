@@ -74,7 +74,7 @@ const Footer = () => {
         {/* Bottom */}
         <div className="mt-12 pt-8 border-t border-cream/10 text-center">
           <p className="text-sm text-cream/50">
-            © 2026 MG LUXURY – 2M. Tous droits réservés.
+            © 2026 MG LUXURY – 2M. Devellopper par Fadil / IncludeCode: 778012731.
           </p>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { ArrowLeft, Minus, Plus, ShoppingBag, Package, Droplets, Star } from 'lu
 import Navbar from '@/components/Navbar/Navbar';
 import Footer from '@/components/Footer/Footer';
 import ProductSlider from '@/components/ProductSlider/ProductSlider';
-import { products } from '@/api/products';
+import { useSupabase } from '@/context/SupabaseContext';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,10 +13,46 @@ import { Badge } from '@/components/ui/badge';
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { products, categories, loading, error } = useSupabase();
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
 
-  const product = products.find(p => p.id === Number(id));
+  const product = products?.find(p => p.id === Number(id));
+  const categoryLabel = categories?.find(cat => cat.name === product?.category)?.label || product?.category;
+
+  // Gestion du chargement
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="pt-24 min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Chargement du produit...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Gestion des erreurs
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="pt-24 min-h-screen flex items-center justify-center">
+          <div className="text-center text-red-600">
+            <p>Erreur lors du chargement: {error}</p>
+            <Button onClick={() => window.location.reload()} className="mt-4">
+              Réessayer
+            </Button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -73,7 +109,7 @@ const ProductDetails = () => {
               
               {/* Badges */}
               <div className="absolute top-4 left-4 flex flex-col gap-2">
-                {product.isNew && (
+                {product.is_new && (
                   <Badge className="bg-primary text-primary-foreground px-4">Nouveau</Badge>
                 )}
                 {product.stock < 5 && product.stock > 0 && (
@@ -91,7 +127,7 @@ const ProductDetails = () => {
               className="flex flex-col"
             >
               <span className="text-sm text-primary uppercase tracking-wider font-medium mb-2">
-                {product.category === 'thiouraye' ? 'Thiouraye' : 'Huile Naturelle'}
+                {categoryLabel}
               </span>
 
               <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">

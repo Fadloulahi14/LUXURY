@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Product } from '@/api/products';
+import { Product } from '@/lib/supabase';
 
 export interface CartItem {
   product: Product;
