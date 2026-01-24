@@ -23,6 +23,9 @@ const Checkout = () => {
   });
   const [orderSent, setOrderSent] = useState(false);
 
+  // Détecter si l'utilisateur est sur mobile
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-SN').format(price) + ' F';
   };
@@ -83,11 +86,21 @@ Merci de confirmer ma commande ! 🙏
       // Ouvrir WhatsApp
       const phoneNumber = '221778012731'; // Replace with actual WhatsApp number
       const message = generateWhatsAppMessage();
-      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 
-      window.open(whatsappUrl, '_blank');
-      setOrderSent(true);
-      clearCart();
+      // Essayer d'ouvrir dans un nouvel onglet d'abord
+      const whatsappWindow = window.open(whatsappUrl, '_blank');
+
+      // Si l'ouverture échoue (bloquée par le navigateur), utiliser location.href
+      if (!whatsappWindow || whatsappWindow.closed) {
+        window.location.href = whatsappUrl;
+      }
+
+      // Délai pour permettre à WhatsApp de s'ouvrir avant d'afficher le message de succès
+      setTimeout(() => {
+        setOrderSent(true);
+        clearCart();
+      }, 1500);
 
     } catch (error) {
       console.error('Erreur détaillée lors de la création de la commande:', error);
@@ -103,8 +116,12 @@ Merci de confirmer ma commande ! 🙏
       // Ouvrir quand même WhatsApp en cas d'erreur de sauvegarde
       const phoneNumber = '221778012731';
       const message = generateWhatsAppMessage();
-      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
-      window.open(whatsappUrl, '_blank');
+      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+      const whatsappWindow = window.open(whatsappUrl, '_blank');
+      if (!whatsappWindow || whatsappWindow.closed) {
+        window.location.href = whatsappUrl;
+      }
     }
   };
 
@@ -242,7 +259,10 @@ Merci de confirmer ma commande ! 🙏
                 </Button>
 
                 <p className="text-xs text-center text-muted-foreground">
-                  En cliquant sur ce bouton, vous serez redirigé vers WhatsApp avec votre commande pré-remplie.
+                  {isMobile
+                    ? "En cliquant sur ce bouton, WhatsApp s'ouvrira avec votre commande pré-remplie."
+                    : "En cliquant sur ce bouton, un nouvel onglet WhatsApp s'ouvrira avec votre commande pré-remplie."
+                  }
                 </p>
               </form>
             </motion.div>
