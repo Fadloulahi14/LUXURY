@@ -5,6 +5,10 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: "/", // Chemin de base pour le déploiement (nécessaire pour SPA)
+  build: {
+    outDir: "dist", // Dossier de sortie du build
+  },
   server: {
     host: "::",
     port: 8080,
