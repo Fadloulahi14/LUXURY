@@ -58,6 +58,7 @@ export interface Order {
   created_at: string
   updated_at: string
   user_id: number | null
+  items: OrderItem[]
 }
 
 export interface User {
@@ -248,11 +249,19 @@ export const api = {
   async getOrders(): Promise<Order[]> {
     const { data, error } = await supabase
       .from('orders')
-      .select('*')
+      .select(`
+        *,
+        order_items (*)
+      `)
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    return data || []
+
+    // Transformer les données pour inclure les items dans la propriété items
+    return (data || []).map(order => ({
+      ...order,
+      items: order.order_items || []
+    })) as Order[]
   },
 
   async getOrder(id: string): Promise<Order | null> {

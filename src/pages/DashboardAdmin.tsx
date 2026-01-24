@@ -265,7 +265,7 @@ const DashboardAdmin = () => {
     },
     {
       label: 'Revenus',
-      value: formatPrice(orders?.reduce((sum, o) => sum + o.total_price, 0) || 0),
+      value: formatPrice(orders?.filter(o => o.status !== 'annulée').reduce((sum, o) => sum + o.total_price, 0) || 0),
       icon: Users,
       color: 'text-blue-600'
     },
@@ -291,10 +291,10 @@ const DashboardAdmin = () => {
 
   // Pagination logic for orders
   const ordersTotalPages = Math.ceil((orders?.length || 0) / itemsPerPage);
-  const paginatedOrders = orders?.slice(
+  const paginatedOrders = orders ? orders.slice(
     (ordersCurrentPage - 1) * itemsPerPage,
     ordersCurrentPage * itemsPerPage
-  ) || [];
+  ) : [];
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -462,57 +462,65 @@ const DashboardAdmin = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {paginatedProducts.map((product, i) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="bg-card rounded-xl border border-border shadow-luxury overflow-hidden"
-                >
-                  <div className="aspect-video bg-muted relative">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                    {product.is_new && (
-                      <Badge className="absolute top-2 left-2 bg-primary">Nouveau</Badge>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <span className="text-xs text-primary uppercase tracking-wider">
-                      {product.category}
-                    </span>
-                    <h3 className="font-display font-semibold mt-1 line-clamp-1">
-                      {product.name}
-                    </h3>
-                    <div className="flex items-center justify-between mt-3">
-                      <span className="font-bold text-primary">{formatPrice(product.price)}</span>
-                      <span className="text-sm text-muted-foreground">Stock: {product.stock}</span>
+              {paginatedProducts && paginatedProducts.length > 0 ? (
+                paginatedProducts.map((product, i) => (
+                  <motion.div
+                    key={product.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="bg-card rounded-xl border border-border shadow-luxury overflow-hidden"
+                  >
+                    <div className="aspect-video bg-muted relative">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                      {product.is_new && (
+                        <Badge className="absolute top-2 left-2 bg-primary">Nouveau</Badge>
+                      )}
                     </div>
-                    <div className="flex gap-2 mt-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 gap-1"
-                        onClick={() => openEditDialog(product)}
-                      >
-                        <Edit className="w-3 h-3" />
-                        Modifier
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => handleDeleteProduct(product.id)}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
+                    <div className="p-4">
+                      <span className="text-xs text-primary uppercase tracking-wider">
+                        {product.category}
+                      </span>
+                      <h3 className="font-display font-semibold mt-1 line-clamp-1">
+                        {product.name}
+                      </h3>
+                      <div className="flex items-center justify-between mt-3">
+                        <span className="font-bold text-primary">{formatPrice(product.price)}</span>
+                        <span className="text-sm text-muted-foreground">Stock: {product.stock}</span>
+                      </div>
+                      <div className="flex gap-2 mt-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 gap-1"
+                          onClick={() => openEditDialog(product)}
+                        >
+                          <Edit className="w-3 h-3" />
+                          Modifier
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteProduct(product.id)}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                ))
+              ) : (
+                <div className="text-center py-20 col-span-full">
+                  <p className="text-muted-foreground text-lg mb-4">
+                    Aucun produit trouvé
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Pagination for Products */}
@@ -535,84 +543,94 @@ const DashboardAdmin = () => {
             <h2 className="font-display text-2xl font-bold mb-6">Commandes</h2>
             
             <div className="space-y-4">
-              {paginatedOrders.map((order, i) => (
-                <motion.div
-                  key={order.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="bg-card p-6 rounded-xl border border-border shadow-luxury"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-display font-semibold">Commande #{order.id}</span>
-                        <Badge className={getStatusBadge(order.status)}>
-                          {order.status}
-                          {order.status === 'en cours' && (
-                            <span className="ml-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
-                          )}
-                        </Badge>
+              {paginatedOrders && paginatedOrders.length > 0 ? (
+                paginatedOrders.map((order, i) => (
+                  <motion.div
+                    key={order.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className="bg-card p-6 rounded-xl border border-border shadow-luxury"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-display font-semibold">Commande #{order.id}</span>
+                          <Badge className={getStatusBadge(order.status)}>
+                            {order.status}
+                            {order.status === 'en cours' && (
+                              <span className="ml-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
+                            )}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{order.date}</p>
+                        {order.status === 'en cours' && (
+                          <p className="text-xs text-orange-600 font-medium">⚠️ Action requise</p>
+                        )}
                       </div>
-                      <p className="text-sm text-muted-foreground">{order.date}</p>
+                      <span className="font-display text-xl font-bold text-primary">
+                        {formatPrice(order.total_price)}
+                      </span>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="font-medium mb-1">Client</p>
+                        <p className="text-muted-foreground">{order.customerName}</p>
+                        <p className="text-muted-foreground">{order.customerPhone}</p>
+                        <p className="text-muted-foreground">{order.customerEmail}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium mb-1">Adresse</p>
+                        <p className="text-muted-foreground">{order.address}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t border-border">
+                      <p className="font-medium mb-2 text-sm">Produits commandés</p>
+                      <div className="space-y-1">
+                        {order.items && order.items.length > 0 ? order.items.map((item, idx) => {
+                          const product = productsList?.find(p => p.id === item.productId);
+                          return (
+                            <p key={idx} className="text-sm text-muted-foreground">
+                              • {product?.name || 'Produit inconnu'} x{item.quantity} - {formatPrice(item.price * item.quantity)}
+                            </p>
+                          );
+                        }) : (
+                          <p className="text-sm text-muted-foreground">Aucun produit dans cette commande</p>
+                        )}
+                      </div>
+
+                      {/* Action buttons for pending orders */}
                       {order.status === 'en cours' && (
-                        <p className="text-xs text-orange-600 font-medium">⚠️ Action requise</p>
+                        <div className="flex gap-2 mt-4 pt-4 border-t border-border">
+                          <Button
+                            size="sm"
+                            onClick={() => handleApproveOrder(order.id)}
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            Approuver
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleRejectOrder(order.id)}
+                            className="flex-1"
+                          >
+                            Rejeter
+                          </Button>
+                        </div>
                       )}
                     </div>
-                    <span className="font-display text-xl font-bold text-primary">
-                      {formatPrice(order.total_price)}
-                    </span>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="font-medium mb-1">Client</p>
-                      <p className="text-muted-foreground">{order.customerName}</p>
-                      <p className="text-muted-foreground">{order.customerPhone}</p>
-                      <p className="text-muted-foreground">{order.customerEmail}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium mb-1">Adresse</p>
-                      <p className="text-muted-foreground">{order.address}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <p className="font-medium mb-2 text-sm">Produits commandés</p>
-                    <div className="space-y-1">
-                      {order.items.map((item, idx) => {
-                        const product = productsList?.find(p => p.id === item.productId);
-                        return (
-                          <p key={idx} className="text-sm text-muted-foreground">
-                            • {product?.name || 'Produit inconnu'} x{item.quantity} - {formatPrice(item.price * item.quantity)}
-                          </p>
-                        );
-                      })}
-                    </div>
-
-                    {/* Action buttons for pending orders */}
-                    {order.status === 'en cours' && (
-                      <div className="flex gap-2 mt-4 pt-4 border-t border-border">
-                        <Button
-                          size="sm"
-                          onClick={() => handleApproveOrder(order.id)}
-                          className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          Approuver
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleRejectOrder(order.id)}
-                          className="flex-1"
-                        >
-                          Rejeter
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                ))
+              ) : (
+                <div className="text-center py-20">
+                  <p className="text-muted-foreground text-lg mb-4">
+                    Aucune commande trouvée
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Pagination for Orders */}
