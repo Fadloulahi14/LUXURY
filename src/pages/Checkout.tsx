@@ -54,7 +54,7 @@ Merci de confirmer ma commande ! 🙏
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const phoneNumber = '221770000000'; // Replace with actual WhatsApp number
+    const phoneNumber = '221778012731'; // Replace with actual WhatsApp number
     const message = generateWhatsAppMessage();
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
     
